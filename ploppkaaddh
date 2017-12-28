@@ -1,0 +1,32 @@
+#!/usr/bin/python
+import sys,os 
+addhparam='''\
+file datadir /opt/plop21.0/data
+file logfile %s
+load pdb %s wat yes het yes opt yes
+pka clust res all res fastpka yes adjust yes
+structure write %s
+'''
+tmpfile="sefleisjflseifjsefejsielfjsliefj"
+reslistfile="list_res"
+
+if len(sys.argv)<2:
+    print "Usage: $0 file_to_addH [output file]"
+    sys.exit()
+infile,outfile=(sys.argv[1:]+["f.pdb"])[:2] 
+
+# Make parameter file
+ofp=open(tmpfile,"w")
+ofp.write(addhparam%("pkaaddh.log",infile,outfile))
+ofp.close()
+
+# Make list_res file
+os.system('''grep ATOM %s|grep HIS |awk '{print $5,":",$6}'|uniq > %s'''%(infile,reslistfile))
+
+# Addh
+os.system('''echo %s |/opt/plop21.0/plop'''%(tmpfile,))
+
+# Delete tmpfile
+os.system('''rm %s'''%(tmpfile,))
+
+

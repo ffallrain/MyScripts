@@ -1,0 +1,7 @@
+file datadir /home/wangyx/Software/dockenv/bin/Linux/plop6.0/data
+file logfile ICDA.log
+load pdb opt.pdb het yes ions no wat yes opt no seqres no
+pka clust within8.0 B:808 fastpka no adjust yes
+energy calc
+structure write icda.pdb
+

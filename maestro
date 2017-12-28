@@ -1,0 +1,3 @@
+#!/bin/bash
+export SCHRODINGER='/opt/schrodinger_2014'
+/opt/schrodinger_2014/maestro &

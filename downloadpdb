@@ -1,0 +1,23 @@
+#!/usr/bin/python
+import sys,os
+
+if len(sys.argv)<2:
+    print "Usage : $0 list_file"
+    exit()
+listfile=sys.argv[1]
+
+database_path = '/home/fuqy/Databases/ProteinDB'
+for line in open(listfile,"r"):
+    pdbid=line.strip()
+    if line:
+        if not os.path.isfile("%s/%s.pdb.gz"%(database_path,pdbid.lower())):
+            os.system("wget http://www.rcsb.org/pdb/files/%s.pdb.gz "%pdbid)
+            os.system("gunzip -f %s.pdb.gz"%pdbid)
+        else:
+            print ">>>>> Get PDB file from local database: %s"%database_path 
+            print ">>>>> PDB id %s"%pdbid
+            os.system("cp %s/%s.pdb.gz ./"%(database_path,pdbid.lower()) )
+            os.system("gunzip -f %s.pdb.gz"%pdbid.lower())
+            print ">>>>> Done" 
+        
+print "Done"

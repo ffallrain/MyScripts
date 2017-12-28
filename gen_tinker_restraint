@@ -1,0 +1,28 @@
+#!/usr/bin/python
+import sys,os
+
+assert os.path.isfile('tinker.key')
+os.system('cp tinker.key bak.tinker.key')
+
+assert int(os.popen('grep -i "RESTRAIN-POSITION" tinker.key|wc -l').read())==0
+
+ifp = open(sys.argv[1])
+ofp = open('tinker.key','a')
+
+if len(sys.argv) > 2:
+    strengh = float(sys.argv[2])
+else:
+    strengh = 2.39
+
+for line in ifp:
+    items = line.split()
+    if len(items)<6:
+        continue
+    elif '.' in items[0]:
+        continue
+    else:
+        if "H" not in items[1] and int(items[5])!=247:
+            if items[1] not in ['Mg+', 'Na+', 'Cl-'] :
+                ofp.write("RESTRAIN-POSITION %d %f %f %f %f\n"%(int(items[0]),float(items[2]),float(items[3]),float(items[4]),strengh) )
+
+ofp.close() 

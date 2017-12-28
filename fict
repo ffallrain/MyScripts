@@ -1,0 +1,31 @@
+#!/usr/bin/python
+import sys,os,pickle
+import fictcore
+reload(sys)
+sys.setdefaultencoding("utf-8")
+
+# Get 'word' or 'phrase'
+if len(sys.argv)<2:
+	print "Usage:fict word OR phrase"
+	sys.exit(0)
+req=" ".join(sys.argv[1:])
+
+# Open .dat in local and load dict
+ifp=open("/home/fuqiuyu/.ffallrain/fict.dat","r")
+dat=pickle.load(ifp)
+ifp.close()
+
+# Check if already has the word or phrase
+if dat.has_key(req):
+	pass 
+# Don't included in dat
+else:
+	result=fictcore.get(req)
+	dat[req]=result
+	ofp=open("/home/fuqiuyu/.ffallrain/fict.dat","w")
+	pickle.dump(dat,ofp)
+	ofp.close()
+# Print 
+print dat[req]
+
+
