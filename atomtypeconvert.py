@@ -16,11 +16,11 @@ def fixatomname(str):
 # Load convert table
 table = dict()
 if ctype == 'g2a':
-    tablefile="/home/fuqy/.ffallrain/table_gmx2amb.dat"
+    tablefile="%s/table_gmx2amb.dat"%os.environ['FQY_SCRIPT_PATH']
     water = (' O   HOH',' H1  HOH',' H2  HOH')
 
 if ctype == 'a2g':
-    tablefile="/home/fuqy/.ffallrain/table_amb2gmx.dat"
+    tablefile="%s/table_amb2gmx.dat"%os.environ['FQY_SCRIPT_PATH']
     water = (' OW  SOL',' HW1 SOL',' HW2 SOL')
 
 
