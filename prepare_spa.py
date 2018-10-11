@@ -1,55 +1,36 @@
 #!/usr/bin/python
-import sys,os
 import fpdb
+import sys,os
 
-watermodel = sys.argv[1]
+traj = 'prod/traj.pdb' 
 
-origin_lig = 'lig.pdb'
-origin_rec = 'rec.pdb'
-box = 'box.gro'
+os.system("shift_lig.py")
 
-box = sys.argv[4]
-origin_para = '/home/fuqy/Software/SPA/SPA1.5/para/SPA.para'
-gmx = 'gmx'
-trajfile = 'traj.pdb'
-syspdb = 'g1.pdb'
-recpdb = 'rec.pdb'
-ligfile = 'g1_lig.pdb'
+frame = next( fpdb.next_frame(traj) )
 
-
-
-para = 'SPA.para'
-
-if not os.path.isdir('spa'):
-    os.mkdir('spa')
-os.chdir('spa')
-
-os.system("echo 0 > 0")
-os.system("echo >> 0 ")
-os.system( "%s traj -s ../prod.tpr -f ../prod.trr -oxt %s < 0"%(gmx,trajfile) )
-os.system("rm 0")
-
-for model in fpdb.next_frame(trajfile):
-    ofp = open(syspdb,'w')
-    for line in model:
+with open("prod/a1.pdb",'w') as ofp:
+    for line in frame:
         ofp.write(line)
-    ofp.close()
 
-    ofp = open(recpdb,'w')
-    for line in model:
-        if 'SOL' not in line and 'HOH' not in line and 'WAT' not in line:
-            ofp.write(line)
-    ofp.close()
-    break
+with open("prod/rec.pdb",'w') as ofp:
+    for resi in fpdb.fPDB(frame).topology.get_protein_residues():
+        resi.write_pdb(ofp)
 
-ofp = open(para,'w')
-for line in open(origin_para):
-    line.replace('tip4p',watermodel)
-    line.replace('g1.pdb',syspdb)
-    line.replace('rec.pdb',recpdb)
-    ofp.write(line)
-ofp.close()
-
-print 'Done.'
-
+n = 0
+with open("runspa.bash",'w') as ofp:
+    ofp.write("#!/bin/bash\n")
+    ofp.write("source ~/.bashrc\n")
+    while True:
+        if os.path.isdir("spa_%d"%n):
+            os.system("cp prod/a1.pdb spa_%d"%n)
+            os.system("cp prod/rec.pdb spa_%d"%n)
+            os.system("cp lig_shift.pdb spa_%d/a1_lig.pdb"%n)
+            os.system("cp %s/para/SPA.amoeba.para spa_%d/SPA.para"%(os.environ['SPAHOME'],n))
+            ofp.write("cd spa_%d\n"%n)
+            ofp.write("%s/bin/SPA_main SPA.para\n"%os.environ['SPAHOME'])
+            ofp.write("cd ..\n")
+            pass
+        else:
+            break
+        n += 1
 

@@ -12,7 +12,7 @@ def get(req):
 	url="http://dict.cn/"+req
 	content=flib.furlopen(url)
 
-	soup=BeautifulSoup(BeautifulSoup(content).prettify()) # haha
+	soup=BeautifulSoup(BeautifulSoup(content).prettify(),'html.parser') # haha
 	sectiondef=soup.find(class_="section def")
 
 	if sectiondef==None:

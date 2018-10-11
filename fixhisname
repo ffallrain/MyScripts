@@ -19,7 +19,7 @@ infile,outfile=sys.argv[1:3]
 # Find HIS first (include HID ,HIE,HIP . for check use)
 hisresi=dict()
 for line in os.popen("""grep ATOM %s |grep -v REMARK|grep -E 'HIS|HID|HIE|HIP' |cut -b 22-26|uniq """%(infile,)):
-    hisresi[line[:-1]]=""
+    hisresi[line[:-1]]= set()
 print hisresi
 
 # Determine HIS type (scan infile first time)
@@ -32,24 +32,26 @@ for line in ifp:
 #    resiindex="%s %s"%(chain,index)
     resiindex=line[21:26]
     if not hisresi.has_key(resiindex):continue
-    atomtype=lineitems[2]
+    atomtype=line[12:16].strip()
     if atomtype=="HD1":
-        hisresi[resiindex]+="HD1"
+        hisresi[resiindex].add("HD1")
     if atomtype=="HE2":
-        hisresi[resiindex]+="HE2"
+        hisresi[resiindex].add("HE2")
 ifp.close()
 print hisresi
 
 # trans "HD1HE" to "HIP"
 for key in hisresi:
-    if hisresi[key]=="HD1HE2":
+    if hisresi[key]==set(("HD1","HE2")):
         hisresi[key]="HIP"
-    if hisresi[key]=="HE2HD1":
-        hisresi[key]="HIP"
-    if hisresi[key]=="HD1":
+    elif hisresi[key]==set(("HD1",)):
         hisresi[key]="HID"
-    if hisresi[key]=="HE2":
+    elif hisresi[key]==set(("HE2",)):
         hisresi[key]="HIE"
+    else:
+        hisresi[key]="HIS"
+        
+    
 
 # Reload in.pdb and correct HIS name and write in to out.pdb
 ifp=open(infile,"r")
@@ -67,6 +69,7 @@ for line in ifp:
             ofp.write(line)
         else:
             histype=hisresi[resiindex]
+#            print histype
             ofp.write(line.replace("HIS",histype))
 ifp.close()
 ofp.close()

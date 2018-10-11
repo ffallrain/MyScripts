@@ -11,7 +11,7 @@ if len(sys.argv)<2:
 req=" ".join(sys.argv[1:])
 
 # Open .dat in local and load dict
-ifp=open("/home/fuqiuyu/.ffallrain/fict.dat","r")
+ifp=open("/home/fuqy/.ffallrain/fqy_scripts/fict.dat")
 dat=pickle.load(ifp)
 ifp.close()
 
@@ -22,7 +22,7 @@ if dat.has_key(req):
 else:
 	result=fictcore.get(req)
 	dat[req]=result
-	ofp=open("/home/fuqiuyu/.ffallrain/fict.dat","w")
+	ofp=open("/home/fuqy/.ffallrain/fqy_scripts/fict.dat","w")
 	pickle.dump(dat,ofp)
 	ofp.close()
 # Print 
