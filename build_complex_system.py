@@ -25,7 +25,7 @@ os.system("gmx pdb2gmx -f %s -o rec.gro -ignh -merge all -p rec.top -i rec_posre
 os.system("rm  51")
 
 # lig topology
-# os.system("acpype.py  -i %s"%lig)
+os.system("acpype.py  -i %s"%lig)
 lig_head_lines = list()
 lig_body_lines = list()
 
