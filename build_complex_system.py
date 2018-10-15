@@ -7,7 +7,7 @@ lig = sys.argv[2]
 ligname = lig[:3]
 try:
     netcharge = int(sys.argv[3])
-else:
+except:
     netcharge = 0
 name = ligname
 
@@ -29,7 +29,7 @@ os.system("gmx pdb2gmx -f %s -o rec.gro -ignh -merge all -p rec.top -i rec_posre
 os.system("rm  51")
 
 # lig topology
-os.system("acpype.py  -i %s -c %d"%(lig,netcharge))
+os.system("acpype.py  -i %s -n %d"%(lig,netcharge))
 lig_head_lines = list()
 lig_body_lines = list()
 
@@ -77,6 +77,8 @@ os.system("cp -r ~/mdp ./")
 
 
 # run.sh 
+os.system("gmx editconf -f com.pdb -o box.gro -d 1.0\n")
+os.system("gmx grompp -f mdp/em.mdp -o em_rec.tpr -c box.gro -r box.gro -p topol.top -maxwarn 10\n")
 with open ("run.sh",'w') as ofp:
     ofp.write("#$ -S /bin/bash\n")
     ofp.write("#$ -cwd\n")
@@ -90,8 +92,6 @@ with open ("run.sh",'w') as ofp:
     ofp.write("\n")
     ofp.write("source /pubhome/cuda_soft/gromacs2018/bin/GMXRC.bash\n")
     ofp.write("\n")
-    ofp.write("gmx editconf -f com.pdb -o box.gro -d 1.0\n")
-    ofp.write("gmx grompp -f mdp/em.mdp -o em_rec.tpr -c box.gro -r box.gro -p topol.top -maxwarn 10\n")
     ofp.write("gmx mdrun -deffnm em_rec -ntmpi 1 \n")
     ofp.write("gmx solvate -cp em_rec.gro -o sys.pdb -cs -p topol.top \n")
     ofp.write("gmx grompp -f mdp/em.mdp -o tmp.tpr -c sys.pdb -r sys.pdb -p topol.top -maxwarn 10\n")
