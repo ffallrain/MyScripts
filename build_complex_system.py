@@ -5,6 +5,10 @@ import fpdb
 rec = sys.argv[1]
 lig = sys.argv[2]
 ligname = lig[:3]
+try:
+    netcharge = int(sys.argv[3])
+else:
+    netcharge = 0
 name = ligname
 
 os.system("mkdir %s"%name)
@@ -25,7 +29,7 @@ os.system("gmx pdb2gmx -f %s -o rec.gro -ignh -merge all -p rec.top -i rec_posre
 os.system("rm  51")
 
 # lig topology
-os.system("acpype.py  -i %s"%lig)
+os.system("acpype.py  -i %s -c %d"%(lig,netcharge))
 lig_head_lines = list()
 lig_body_lines = list()
 
