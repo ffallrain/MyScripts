@@ -3,7 +3,8 @@
 name=$1
 
 gmx editconf -f $name.gro -o $name.pdb
-gmx trjconv -f $name.trr -s $name.tpr  -o tmp.trr -pbc nojump << eof
+gmx trjconv -f $name.trr -s $name.tpr  -o tmp.trr -pbc cluster << eof
+non-Water
 System
 eof
 
