@@ -1,32 +1,41 @@
 #!/usr/bin/python
 import sys,os
 import fpdb
+import argparse
 
-if len(sys.argv)<=2:
-    print "Usage $0 in.pdb out.pdb"
-    sys.exit()
-else:
-    infile = sys.argv[1]
-    outfile = sys.argv[2]
+parser = argparse.ArgumentParser()
+parser.add_argument('-i', help='input pdb file')
+parser.add_argument('-o',default='out.pdb',help='output pdb file')
+parser.add_argument('-center', nargs=3, help='Center', type=float ,default = (0,0,0) )
+parser.add_argument('-box', nargs=3, help='Box size', type=float ,default = (0,0,0) )
+args = parser.parse_args()
 
-x = y = z = 9999
+infile = args.i
+outfile = args.o
+box = args.box
+center = args.center
 
-pdb = fpdb.fPDB(infile)
-for residue in pdb.topology.residues:
-    for atom in residue.atoms:
-        x = min(x,atom.posi[0])
-        y = min(y,atom.posi[1])
-        z = min(z,atom.posi[2])
+minx = miny = minz = 9999
+for line in open(infile):
+    if len(line)>=6 and line[:6] in ("HETATM","ATOM  "):
+        x = float(line[30:38])
+        y = float(line[38:46])
+        z = float(line[46:54])
 
-print 'x: %f'%x
-print 'y: %f'%y
-print 'z: %f'%z
+        minx = min(x,minx)
+        miny = min(y,miny)
+        minz = min(z,minz)
 
-for residue in pdb.topology.residues:
-    for atom in residue.atoms:
-        atom.posi[0] = atom.posi[0] - x
-        atom.posi[1] = atom.posi[1] - y
-        atom.posi[2] = atom.posi[2] - z
-    
-pdb.write_pdb(outfile)
+with open(outfile,'w') as ofp:
+    for line in open(infile):
+        if len(line)>=6 and line[:6] in ("HETATM","ATOM  "):
+            x = float(line[30:38])
+            y = float(line[38:46])
+            z = float(line[46:54])
+            nx = x-minx
+            ny = y-miny
+            nz = z-minz
+            ofp.write("%s%8.3f%8.3f%8.3f%s"%(line[:30],nx,ny,nz,line[54:]))
+        else:
+            ofp.write(line)
         

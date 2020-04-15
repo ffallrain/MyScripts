@@ -3,6 +3,7 @@ import sys,os
 
 element_index = dict()
 
+number = 1
 for line in open(sys.argv[1]):
     if "ATOM" not in line and "HETATM" not in line:
         print line,
@@ -15,7 +16,8 @@ for line in open(sys.argv[1]):
         else:
             element_index[element] += 1
             newname = element+"%d"%element_index[element]
-        newline = "%s %-3s%s"%(line[:12],newname,line[16:])
+        newline = "%s%5d%s %-3s%s"%(line[:6],number,line[11:12],newname,line[16:])
+        number += 1
         print newline,
             
             
