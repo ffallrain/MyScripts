@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import sys,os 
+import random
 
 minimparam='''\
 file datadir ~/Software/plop21.0/data
@@ -10,20 +11,21 @@ load pdb %s &
   wat yes &
   opt yes
 minim &
-  res file res.list &
+  res all res &
   mxitn %d &
   verbose yes
 structure write %s
 '''
-tmpfile="sefleisjflseifjsefejsielfjsliefj"
+tmpfile="sefleisjflseifjsefejsielfjsliefj"+str(random.randint(0,999))
 
 if len(sys.argv)<2:
     print "Usage: $0 file_to_minim [output file]"
     sys.exit()
-infile,outfile=(sys.argv[1:]+["f.pdb"])[:2] 
+
+infile,outfile,logfile=(sys.argv[1:]+["f.pdb"]+["minim.log"])[:3] 
 
 ofp=open(tmpfile,"w")
-ofp.write(minimparam%("minim.log",infile,500,outfile))
+ofp.write(minimparam%(logfile,infile,500,outfile))
 ofp.close()
 
 os.system('''echo %s |~/Software/plop21.0/plop'''%(tmpfile,))

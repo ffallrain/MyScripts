@@ -2,6 +2,7 @@
 import sys,os
 import numpy as np
 
+
 def next_pose(infile):
     n = 0 
     pose = dict()
@@ -9,7 +10,7 @@ def next_pose(infile):
         if "MODEL" in line:
             n = int(line.split()[1])
             pose = dict()
-        elif "ENDMDL" in line:
+        elif "ENDMDL" or "END" in line:
             yield n,pose
         elif "ATOM" in line:
             name = line[12:16].strip()

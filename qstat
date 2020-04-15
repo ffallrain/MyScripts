@@ -1,0 +1,9 @@
+#!/usr/bin/python
+import sys,os
+
+print ">>>>> K168"
+os.system("ssh qyfu02@k168 qstat")
+print ">>>>> K151"
+os.system("ssh qyfu02@k151 qstat")
+print ">>>>> N101"
+os.system("ssh qyfu@n101 qstat")
