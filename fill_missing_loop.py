@@ -1,99 +1,59 @@
 #!/usr/bin/env python
-import sys,os
-import fpdb
+from modeller import *
+from modeller.automodel import *
+import argparse
+import os, sys
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-i', type=str, required=True, help = "Input PDB")
+parser.add_argument('-f', type=str, required=True, help = "Reference Fasta")
+parser.add_argument('-n', type=str, required=True, help = "Protein Name")
+parser.add_argument('--number', type=int, required=False, help = "Number of Models", default=5 )
+args = parser.parse_args()
 
-infile = '5ht2b_human_4IB4.pdb'
-infile = sys.argv[1]
+infile = args.i
+name = args.n
+fastafile = args.f
+number = args.number
 
-protname = infile.split('_')[0]
-species = infile.split('_')[1]
-pdbid = infile.split('_')[2][:4].lower()
+if not os.path.isfile(f"{name}.pdb") :
+    os.system(f"cp {infile} {name}.pdb")
 
-with open("list",'w') as ofp:
-    ofp.write(pdbid)
-    ofp.write("\n")
+e = Environ()
+m = Model(e, file=infile)
+aln = Alignment(e)
+aln.append_model(m, align_codes=name)
+aln.write(file=name + '.seq')
 
-os.system("downloadpdb list")
-
-seqres_lines = list()
-for line in open("%s.pdb"%pdbid):
-    if len(line) >= 6 and line[:6] == "SEQRES":
-        seqres_lines.append(line)
-        
-
-with open("lp_input.pdb",'w') as ofp:
-    for line in seqres_lines:
+with open("self_align_in.ali",'w') as ofp:
+    for line in open(name + '.seq'):
         ofp.write(line)
-    for line in open(infile):
+    ofp.write(f">P1;{name}_fill\n")
+    ofp.write("sequence:::::::::\n")
+    lines = open(fastafile).readlines()[1:]
+    for line in lines[:-1]:
         ofp.write(line)
+    ofp.write( lines[-1].strip() + "*\n" )
 
-# find gap
-gap_init = list()
-gap_end = list()
-gap_chain = list()
-oldnumber = 0
-kept_resis = set()
-for line in open(infile):
-    if len(line) >= 6 and line[:6] == "ATOM  ":
-        chain = line[21]
-        number = int(line[22:26])
-        kept_resis.add( "%s:%d"%(chain,number) )
+# log.verbose()
+env = Environ()
+env.io.atom_files_directory = ['.', '../atom_files']
 
-        if oldnumber == 0:
-            oldnumber = number
-        else:
-            if number in (oldnumber, oldnumber + 1):
-                pass
-            else:
-                gap_init.append(oldnumber)
-                gap_end.append(number)
-                gap_chain.append(chain)
-            oldnumber = number
-                
-gap = list()
-for (a,b,c) in zip(gap_init,gap_end,gap_chain):
-    if b>a and b-a <=10:
-        gap.append( (a,b,c) )
-        for i in range(a,b):
-            kept_resis.add("%s:%d"%(c,i))
+aln = Alignment(env, file="self_align_in.ali")
 
-with open("lp.input",'w') as ofp:
-    ofp.write( "file datadir /home/fuqy/Software/plop21.0/data\n")
-    ofp.write("file log lp.log\n")
-    ofp.write("load pdb lp_input.pdb opt yes seqres yes het no wat no\n")
-    for (a,b,c) in gap:
-        ofp.write("loop predict %s:%d %s:%d\n"%(c,a,c,b) )
-    ofp.write("write pdb lp_raw.pdb\n")
+aln.salign(overhang=30, gap_penalties_1d=(-450, -50),
+           alignment_type='tree', output='ALIGNMENT')
 
-os.system("plop lp.input")
+aln.write(file='self_align_out.ali', alignment_format='PIR')
 
-with open("lp.pdb",'w') as ofp:
-    for line in open("lp_raw.pdb"):
-        if len(line) >= 6 and line[:6] == "ATOM  ":
-            chain = line[21]
-            resindex = int(line[22:26])
-            if "%s:%d"%(chain,resindex) not in kept_resis:
-                continue
-        ofp.write(line)
+a = LoopModel(env, alnfile = 'self_align_out.ali',
+              knowns = name, sequence = name+"_fill" )
+a.starting_model= 1
+a.ending_model  = 1
 
-os.system("cp lp.pdb lp_tmp.pdb")
-os.system("addter.py lp_tmp.pdb lp.pdb")
-os.system("rm lp_tmp.pdb")
+a.loop.starting_model = 1
+a.loop.ending_model   = number
+a.loop.md_level       = refine.slow
 
-if os.path.isfile("lp_raw.pdb"):
-    with open("lig.pdb",'w') as ofp:
-        for line in open(infile):
-            if len(line) >= 6 and line[:6] == "HETATM":
-                ofp.write(line)
-    with open("rec.pdb",'w') as ofp:
-        for line in open("lp.pdb"):
-            if len(line) >= 6 and line[:6] == "ATOM  ":
-                ofp.write(line)
-else:
-    print("ERROR")
-
-
-os.system("mkdir tmp_files")
-os.system("mv list %s.pdb lp_input.pdb lp.input lp.log gmon.out tmp_files"%pdbid)
+a.make()
 
